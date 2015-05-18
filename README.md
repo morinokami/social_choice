@@ -6,6 +6,7 @@ well-known winner selection methods.
 
 Usage
 -----
+
 1. Prepare a csv file which represents voters' preference schedule.
   * The first line of the csv file consists of candidates.
     Any string can be used to represent a candidate.
@@ -13,7 +14,7 @@ Usage
     The candidate put at the first column is interpreted as the most preffered candidate.
   * For example, if there are 4 candidates and 18 voters, the csv file
     should be like this:
-```
+  ```
 A,B,C,D
 A,B,C,D
 D,C,B,A
@@ -35,12 +36,12 @@ D,C,B,A
 A,B,C,D
 ```
 2. Run ```sc.py``` at the command line with the csv file as an argument:
-```bash
+  ```bash
 $ python3 sc.py preferences.csv
 ```
   * You can use the ```-m``` or ```--method``` optional argument to specify a
     winner-selection method like this:
-```bash
+  ```bash
 $ python3 sc.py preferences.csv -m borda
 ```
   * The possible options are
@@ -50,8 +51,7 @@ $ python3 sc.py preferences.csv -m borda
     * the Borda count (```borda```),
     * and the pairwise comparison method a.k.a. Condorcet method (```pairwise```).
 3. The result will be displayed on the screen like this:
-
-```bash
+  ```bash
 $ python3 sc.py preferences.csv -m borda
 Borda count
 
