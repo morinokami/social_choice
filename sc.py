@@ -143,7 +143,45 @@ class Aggregator():
 
     def runoff(self):
         '''Prints who wins by the runoff method'''
-        pass
+
+        candidates = list(self.candidates)
+
+        # first round
+        counts = {}
+        for pref in self.pref_schedule.prefs:
+            highest = pref[0]
+            if highest in counts:
+                counts[highest] += 1
+            else:
+                counts[highest] = 1
+
+        first_round_winners = []
+        scores = list(counts.values())
+        highest_votes = max(scores)
+        while highest_votes in scores:
+            scores.remove(highest_votes)
+        second_highest_votes = max(scores)
+        for candidate in counts:
+            if counts[candidate] == highest_votes:
+                first_round_winners.append(candidate)
+        if len(first_round_winners) == 1:
+            for candidate in counts:
+                if counts[candidate] == second_highest_votes:
+                    first_round_winners.append(candidate)
+
+        print('The number of votes for each candidate in the first round:', counts)
+        print('The first round winners are', first_round_winners)
+
+        # second round
+        counts = {c: 0 for c in first_round_winners}
+        for candidate in first_round_winners:
+            for pref in self.pref_schedule.prefs:
+                ranks = [pref.index(c) for c in first_round_winners]
+                if pref.index(candidate) == min(ranks):
+                    counts[candidate] += 1
+
+        print('The number of votes for each candidate in the second round:', counts)
+        print('The winner(s) is(are)', find_winner(counts))
 
     def elimination(self):
         '''Prints who wins by the elimination method'''
@@ -252,8 +290,9 @@ if __name__ == '__main__':
                 print(aggr)
                 aggr.plurality()
             elif method == 'runoff':
-                print('Runoff method (not yet)')
-                # print(aggr)
+                print('Runoff method\n')
+                print(aggr)
+                aggr.runoff()
             else:
                 raise InputError('Invalid method name')
         except InputError as e:
@@ -264,6 +303,10 @@ if __name__ == '__main__':
         print(aggr)
         print('Plurality method:')
         aggr.plurality()
+        print('\nRunoff method:')
+        aggr.runoff()
+        print('\nElimination method:')
+        aggr.elimination()
         print('\nBorda count:')
         aggr.borda()
         print('\nPairwise comparison method:')
