@@ -1,35 +1,36 @@
 #!/usr/bin/env python3
 
 import argparse
+import copy
 import csv
 import os
 import sys
 
 '''
-candidates = ('A', 'B', 'C', 'D')
+candidates = ['A', 'B', 'C', 'D']
 
 prefs = [
-    ('A', 'B', 'C', 'D'),
-    ('D', 'C', 'B', 'A'),
-    ('B', 'C', 'A', 'D'),
-    ('A', 'B', 'C', 'D'),
-    ('A', 'B', 'C', 'D'),
+    ['A', 'B', 'C', 'D'],
+    ['D', 'C', 'B', 'A'],
+    ['B', 'C', 'A', 'D'],
+    ['A', 'B', 'C', 'D'],
+    ['A', 'B', 'C', 'D'],
 
-    ('A', 'B', 'C', 'D'),
-    ('B', 'C', 'A', 'D'),
-    ('A', 'B', 'C', 'D'),
-    ('B', 'C', 'A', 'D'),
-    ('B', 'C', 'A', 'D'),
+    ['A', 'B', 'C', 'D'],
+    ['B', 'C', 'A', 'D'],
+    ['A', 'B', 'C', 'D'],
+    ['B', 'C', 'A', 'D'],
+    ['B', 'C', 'A', 'D'],
 
-    ('B', 'C', 'A', 'D'),
-    ('C', 'B', 'A', 'D'),
-    ('C', 'B', 'A', 'D'),
-    ('C', 'B', 'A', 'D'),
-    ('D', 'C', 'B', 'A'),
+    ['B', 'C', 'A', 'D'],
+    ['C', 'B', 'A', 'D'],
+    ['C', 'B', 'A', 'D'],
+    ['C', 'B', 'A', 'D'],
+    ['D', 'C', 'B', 'A'],
 
-    ('C', 'B', 'A', 'D'),
-    ('D', 'C', 'B', 'A'),
-    ('A', 'B', 'C', 'D')
+    ['C', 'B', 'A', 'D'],
+    ['D', 'C', 'B', 'A'],
+    ['A', 'B', 'C', 'D']
 ]
 '''
 
@@ -47,8 +48,6 @@ class PreferenceSchedule():
 
     def __init__(self, candidates, prefs):
         # check whether the candidates list consists of only strings
-        if type(candidates) != tuple:
-            raise InputError('Candidates must be a tuple')
         if not all(map(lambda x: type(x) == str, candidates)):
             raise InputError('Candidate must be a string')
 
@@ -85,6 +84,7 @@ class PreferenceSchedule():
 
         # count the number of occurences of each preference
         prefs = self.prefs[:]
+        prefs = [tuple(p) for p in self.prefs]
         counts = {}
         while prefs:
             pref = prefs.pop(0)
@@ -105,7 +105,7 @@ class Aggregator():
 
     def __init__(self, file):
         try:
-            candidates, prefs = csv_to_preference_schedule(args.csv)
+            candidates, prefs = csv_to_preference_schedule(file)
             self.candidates = candidates
             self.pref_schedule = PreferenceSchedule(candidates, prefs)
         except InputError as e:
@@ -138,7 +138,7 @@ class Aggregator():
             if counts[candidate] == highest_votes:
                 winner.append(candidate)
 
-        print('The number of votes for each candidate:', counts)
+        print('The numbers of votes for each candidate:', counts)
         print('The winner(s) is(are)', find_winner(counts))
 
     def runoff(self):
@@ -169,7 +169,7 @@ class Aggregator():
                 if counts[candidate] == second_highest_votes:
                     first_round_winners.append(candidate)
 
-        print('The number of votes for each candidate in the first round:', counts)
+        print('The numbers of votes for each candidate in the first round:', counts)
         print('The first round winners are', first_round_winners)
 
         # second round
@@ -180,12 +180,36 @@ class Aggregator():
                 if pref.index(candidate) == min(ranks):
                     counts[candidate] += 1
 
-        print('The number of votes for each candidate in the second round:', counts)
+        print('The numbers of votes for each candidate in the second round:', counts)
         print('The winner(s) is(are)', find_winner(counts))
 
     def elimination(self):
         '''Prints who wins by the elimination method'''
-        pass
+
+        num_round = 1
+        candidates = self.candidates[:]
+        prefs = copy.deepcopy(self.pref_schedule.prefs)
+
+        while len(candidates) >= 2:
+            counts = {}
+            for pref in prefs:
+                highest = pref[0]
+                if highest in counts:
+                    counts[highest] += 1
+                else:
+                    counts[highest] = 1
+            print('The numbers of votes for each candidate (round {}):'.format(num_round), counts)
+
+            lowest_votes = min(counts.values())
+            for candidate in counts:
+                if counts[candidate] == lowest_votes:
+                    candidates.remove(candidate)
+                    for pref in prefs:
+                        pref.remove(candidate)
+
+            num_round += 1
+
+        print('The winner(s) is(are)', find_winner(counts))
 
     def borda(self):
         '''Prints who wins by the Borda count'''
@@ -255,9 +279,9 @@ def csv_to_preference_schedule(file):
         reader = csv.reader(f)
         for row in reader:
             if candidates is None:
-                candidates = tuple(row)
+                candidates = list(row)
             else:
-                prefs.append(tuple(row))
+                prefs.append(list(row))
 
         return candidates, prefs
 
@@ -279,8 +303,9 @@ if __name__ == '__main__':
                 print(aggr)
                 aggr.borda()
             elif method == 'elimination':
-                print('Elimination method (not yet)')
-                # print(aggr)
+                print('Elimination method\n')
+                print(aggr)
+                aggr.elimination()
             elif method == 'pairwise':
                 print('Pairwise comparison method\n')
                 print(aggr)
