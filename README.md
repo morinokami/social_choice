@@ -1,8 +1,11 @@
 Social Choice
 =============
 
-This is a command line program to calculate the winner of
-well-known winner selection methods.
+Python program to calculate the winner of
+well-known winner selection methods,
+including the plurality method, the runoff method,
+the elimination method, the Borda count, and
+the pairwise-comparison method (a.k.a. Condorcet mthod).
 
 Usage
 -----
